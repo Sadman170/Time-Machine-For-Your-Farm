@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm Time Machine — Interactive Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6f1; --surface:#fff; --surface2:#eef3ec; --ink:#14231c; --muted:#6b786f;
+  --line:#dce4dc; --green:#216b4b; --green2:#2e8b62; --lime:#a8d85c;
+  --blue:#3c7ca8; --amber:#d18a28; --red:#c84e43; --shadow:0 16px 50px rgba(20,35,28,.08);
+  --radius:20px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+.sidebar{background:#10251b;color:#dce9df;padding:25px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+.brand{display:flex;gap:11px;align-items:center;padding:3px 8px 28px}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#b7e66d,#3d9666);display:grid;place-items:center;color:#10251b;font-weight:800}
+.brand b{font-family:"Space Grotesk";font-size:18px}.brand span{display:block;color:#8ea99a;font-size:11px;margin-top:1px}
+.nav{display:flex;flex-direction:column;gap:5px}.nav button{border:0;background:transparent;color:#a9bdb0;text-align:left;padding:12px 13px;border-radius:12px;display:flex;align-items:center;gap:11px;font-weight:600}
+.nav button:hover,.nav button.active{background:#1b3a2b;color:#fff}.nav .ico{width:20px;text-align:center}
+.side-bottom{margin-top:auto;background:#173427;border:1px solid #28513d;border-radius:15px;padding:14px;font-size:12px;color:#a9c0b2}
+.side-bottom strong{display:block;color:#e9f4ec;margin-bottom:5px}
+.main{min-width:0}
+.topbar{height:76px;background:rgba(244,246,241,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 38px;position:sticky;top:0;z-index:10}
+.crumb{font-size:13px;color:var(--muted)}.crumb b{color:var(--ink)}
+.profile{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700}.avatar{width:34px;height:34px;border-radius:50%;background:#d9e9c9;display:grid;place-items:center;color:#245638}
+.content{max-width:1320px;margin:auto;padding:32px 38px 60px}
+.hero{display:flex;justify-content:space-between;gap:30px;align-items:flex-end;margin-bottom:28px}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.13em;color:var(--green);font-weight:800}
+h1,h2,h3{font-family:"Space Grotesk";margin:0;letter-spacing:-.03em}
+h1{font-size:38px;line-height:1.05;margin-top:7px}.hero p{color:var(--muted);max-width:650px;margin:11px 0 0;font-size:15px;line-height:1.65}
+.field-select{background:var(--surface);border:1px solid var(--line);padding:10px 13px;border-radius:12px;color:var(--ink);font-weight:700;box-shadow:0 5px 20px rgba(0,0,0,.03)}
+.view{display:none}.view.active{display:block}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:0 7px 30px rgba(20,35,28,.035)}
+.card-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin-bottom:18px}
+.card-head p,.muted{color:var(--muted);font-size:13px;margin:5px 0 0;line-height:1.5}
+.kpi{min-height:142px;position:relative;overflow:hidden}.kpi .label{font-size:12px;color:var(--muted);font-weight:700}.kpi .value{font-family:"Space Grotesk";font-size:27px;font-weight:700;margin-top:13px}.kpi .detail{font-size:11px;color:var(--muted);margin-top:6px}.pill{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:800;margin-top:13px;background:#edf5ee;color:var(--green)}.pill.warn{background:#fff3dc;color:#9a641c}.pill.risk{background:#fde9e6;color:#a83c33}
+.kpi:after{content:"";position:absolute;width:90px;height:90px;border-radius:50%;right:-35px;bottom:-35px;background:#eff6e8}
+.section{margin-top:18px}
+.map{height:320px;border-radius:16px;overflow:hidden;background:
+linear-gradient(135deg,rgba(50,120,72,.16),transparent 45%),
+repeating-linear-gradient(12deg,transparent 0 23px,rgba(33,107,75,.08) 24px 25px),
+linear-gradient(160deg,#dfe9d7,#b9d49f 50%,#d7dfc7);position:relative}
+.map:before{content:"";position:absolute;inset:25px 30px;background:
+radial-gradient(circle at 32% 42%,rgba(30,104,69,.8) 0 4px,transparent 5px),
+linear-gradient(100deg,transparent 0 14%,rgba(255,255,255,.55) 15% 16%,transparent 17% 38%,rgba(255,255,255,.5) 39% 40%,transparent 41%);
+border:2px solid rgba(255,255,255,.65);border-radius:25% 40% 30% 20%;box-shadow:inset 0 0 60px rgba(39,85,47,.12)}
+.map-pin{position:absolute;left:32%;top:39%;width:22px;height:22px;background:#1e6c4c;border:4px solid white;border-radius:50%;box-shadow:0 4px 12px #28583d}
+.map-label{position:absolute;left:35%;top:31%;background:#fff;border:1px solid var(--line);border-radius:9px;padding:7px 9px;font-size:11px;font-weight:800;box-shadow:0 5px 15px rgba(0,0,0,.08)}
+.legend{position:absolute;bottom:13px;left:13px;background:rgba(255,255,255,.9);padding:8px 10px;border-radius:9px;font-size:10px;color:var(--muted)}
+.timeline{display:flex;gap:8px;overflow:auto;padding-bottom:3px}.year{min-width:84px;border:1px solid var(--line);background:#fafcf9;border-radius:12px;padding:10px;text-align:center}.year b{font-family:"Space Grotesk";display:block}.year small{font-size:10px;color:var(--muted)}
+.year.active{background:#e9f3e9;border-color:#83ae91;color:var(--green)}
+.chart{height:250px;display:flex;align-items:flex-end;gap:9px;padding:20px 5px 0;border-bottom:1px solid var(--line)}
+.barcol{flex:1;min-width:28px;height:100%;display:flex;align-items:flex-end;position:relative}.barcol i{width:100%;background:linear-gradient(to top,#2e8b62,#79b77b);border-radius:7px 7px 0 0;min-height:8px}.barcol span{position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted)}
+.chart-wrap{padding-bottom:25px}
+.statline{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px}.statline:last-child{border-bottom:0}.statline span{color:var(--muted)}
+.good{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red)}
+.btn{border:0;background:var(--green);color:#fff;padding:11px 15px;border-radius:11px;font-weight:800;font-size:12px}.btn:hover{background:#19553c}.btn.secondary{background:#e9f1e9;color:var(--green)}.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.control label{display:block;font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;margin:0 0 6px}
+.control select,.field-select{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 12px;border-radius:10px;min-width:145px;appearance:auto;color-scheme:light}
+.control select option,.field-select option{background:#fff;color:#14231c}
+.control select:focus,.field-select:focus{outline:2px solid rgba(33,107,75,.25);outline-offset:1px}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.compare-box{border:1px solid var(--line);border-radius:16px;padding:17px}.compare-box.alt{background:#edf6ed;border-color:#9bc4a4}.compare-title{display:flex;justify-content:space-between;font-weight:800;margin-bottom:13px}.metric{margin:13px 0}.metric-top{display:flex;justify-content:space-between;font-size:11px;font-weight:700}.track{height:8px;background:#e2e7e2;border-radius:8px;margin-top:6px;overflow:hidden}.track i{height:100%;display:block;border-radius:8px;background:#559b74}
+.callout{padding:15px;border-radius:14px;background:#f2f6ef;border:1px solid #dce9d8;font-size:12px;line-height:1.6}.callout strong{display:block;margin-bottom:3px}
+.replay{position:relative;padding-left:28px}.replay:before{content:"";position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:#d7e4d8}.event{position:relative;margin-bottom:17px}.event:before{content:"";position:absolute;left:-24px;top:3px;width:10px;height:10px;background:#4f8d67;border:3px solid #edf6ed;border-radius:50%}.event .date{font-size:10px;color:var(--green);font-weight:800;text-transform:uppercase}.event p{margin:3px 0;font-size:12px}.event small{color:var(--muted)}
+.chat{height:440px;display:flex;flex-direction:column}.messages{flex:1;overflow:auto;padding:4px}.msg{max-width:84%;padding:11px 13px;border-radius:15px;margin:8px 0;font-size:12px;line-height:1.55}.msg.ai{background:#edf3ed;border-bottom-left-radius:4px}.msg.me{background:#216b4b;color:white;margin-left:auto;border-bottom-right-radius:4px}.chips{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.chip{border:1px solid #9cc0a6;background:#f8fbf8;color:var(--green);border-radius:999px;padding:7px 10px;font-size:10px;font-weight:800}.chatform{display:flex;gap:7px}.chatform input{flex:1;border:1px solid var(--line);padding:11px;border-radius:10px;outline:none}
+.game-card{background:#10251b;color:white;border-radius:20px;padding:21px;position:relative;overflow:hidden}.game-card:after{content:"";position:absolute;width:170px;height:170px;right:-50px;top:-60px;background:rgba(168,216,92,.13);border-radius:50%}.game-card p{color:#a9c0b2;font-size:12px;line-height:1.5}.game-icon{font-size:30px}.game-card .btn{background:#a8d85c;color:#10251b;margin-top:10px}
+.badge{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--green);background:#e7f2e6;padding:5px 8px;border-radius:999px}
+.footer-note{text-align:center;color:#89948e;font-size:10px;margin-top:28px}
+@media(max-width:1000px){.app{grid-template-columns:1fr}.sidebar{height:auto;position:static;padding:12px}.brand{padding-bottom:10px}.nav{flex-direction:row;overflow:auto}.side-bottom{display:none}.topbar{padding:0 20px}.content{padding:24px 20px}.grid4{grid-template-columns:repeat(2,1fr)}.grid3,.grid2{grid-template-columns:1fr}}
+@media(max-width:620px){h1{font-size:30px}.hero{display:block}.hero .field-select{margin-top:15px}.grid4{grid-template-columns:1fr}.compare{grid-template-columns:1fr}.topbar{height:62px}.content{padding:20px 14px}.sidebar{padding:8px}.nav button{padding:9px}.nav button span:last-child{display:none}}
+
+/* --- Visual polish upgrade --- */
+:root{
+  --bg:#f5f7f3;
+  --surface:#ffffff;
+  --surface2:#edf4ed;
+  --ink:#14231c;
+  --muted:#66756c;
+  --line:#d7e1d8;
+  --green:#1f7650;
+  --green2:#35966a;
+  --lime:#b5e56a;
+  --shadow:0 12px 34px rgba(20,35,28,.06);
+  --shadow-lg:0 18px 55px rgba(20,35,28,.09);
+  --radius:20px;
+}
+body{
+  background:
+    radial-gradient(circle at 90% 0%, rgba(181,229,106,.13), transparent 28%),
+    radial-gradient(circle at 15% 12%, rgba(53,150,106,.06), transparent 24%),
+    var(--bg);
+}
+.sidebar{
+  background:linear-gradient(180deg,#10271c 0%,#0d2118 100%);
+  box-shadow:8px 0 28px rgba(16,37,27,.08);
+}
+.nav button{transition:background .2s ease,transform .2s ease,color .2s ease}
+.nav button:hover{transform:translateX(2px)}
+.topbar{background:rgba(245,247,243,.88)}
+.content{padding-top:36px}
+.card{
+  box-shadow:var(--shadow);
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-lg);
+  border-color:#cbd9ce;
+}
+.hero{margin-bottom:30px}
+.eyebrow{letter-spacing:.15em}
+.field-select{
+  min-width:245px;
+  border:1px solid #cddacf;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 8px 24px rgba(20,35,28,.06);
+  transition:border-color .2s,box-shadow .2s;
+}
+.field-select:hover{border-color:#8db69b}
+.field-select:focus{outline:none;border-color:#5b9b74;box-shadow:0 0 0 4px rgba(53,150,106,.12)}
+
+.control select,.field-select{
+  appearance:none;
+  -webkit-appearance:none;
+  color:#14231c !important;
+  background-color:#fff !important;
+  font-weight:700;
+  min-height:44px;
+  padding:11px 38px 11px 13px;
+  border:1px solid #c9d8cc;
+  box-shadow:0 5px 16px rgba(20,35,28,.04);
+  background-image:
+    linear-gradient(45deg,transparent 50%,#4c6859 50%),
+    linear-gradient(135deg,#4c6859 50%,transparent 50%);
+  background-position:
+    calc(100% - 17px) 18px,
+    calc(100% - 12px) 18px;
+  background-size:5px 5px,5px 5px;
+  background-repeat:no-repeat;
+}
+.control select:hover{border-color:#7ca88c}
+.control select:focus{
+  outline:none;
+  border-color:#4d936c;
+  box-shadow:0 0 0 4px rgba(53,150,106,.12);
+}
+.control select option,.field-select option{
+  background:#fff !important;
+  color:#14231c !important;
+  font-weight:600;
+}
+.controls{
+  background:linear-gradient(135deg,#f8fbf8,#f0f6f0);
+  border:1px solid #dbe6dc;
+  padding:15px;
+  border-radius:16px;
+}
+.control label{
+  color:#557064;
+  letter-spacing:.07em;
+}
+.btn{
+  box-shadow:0 7px 18px rgba(31,118,80,.16);
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 22px rgba(31,118,80,.2);
+}
+.btn.secondary{box-shadow:none}
+.timeline{scrollbar-width:thin}
+.year{
+  cursor:pointer;
+  transition:all .18s ease;
+}
+.year:hover{
+  transform:translateY(-2px);
+  border-color:#9abca4;
+  background:#f2f8f2;
+}
+.year.active{
+  box-shadow:0 6px 18px rgba(33,107,75,.1);
+}
+.compare{margin-top:20px}
+.compare-box{
+  background:linear-gradient(145deg,#ffffff,#fafcf9);
+  box-shadow:0 7px 22px rgba(20,35,28,.035);
+}
+.compare-box.alt{
+  background:linear-gradient(145deg,#edf8ee,#e7f3e8);
+  box-shadow:0 8px 24px rgba(33,107,75,.08);
+}
+.compare-title b{color:#1f7650}
+.metric .track{background:#e6ece7}
+.callout{
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.45);
+}
+.badge{letter-spacing:.12em}
+.map{
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 10px 28px rgba(39,85,47,.08);
+}
+.kpi{box-shadow:var(--shadow)}
+.kpi .value{letter-spacing:-.04em}
+@media(max-width:620px){
+  .controls{padding:12px}
+  .control{width:100%}
+  .control select{width:100%}
+  .controls .btn{width:100%;margin-top:2px}
+  .field-select{width:100%;min-width:0}
+}
+
+
+
+/* ===== Gemini API Advisor — screenshot-style layout ===== */
+.advisor-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.42fr) minmax(320px,.98fr);
+  gap:20px;
+  align-items:stretch;
+}
+.advisor-main,
+.logic-card{
+  background:#fff;
+  border:1px solid #d7e2d9;
+  border-radius:24px;
+  box-shadow:0 16px 38px rgba(28,62,42,.07);
+}
+.advisor-main{padding:26px}
+.logic-card{padding:28px 26px}
+
+.advisor-main .card-head{
+  align-items:flex-start;
+  margin-bottom:24px;
+}
+.advisor-main .card-head p{
+  max-width:720px;
+  line-height:1.55;
+}
+.advisor-main .badge{
+  flex:0 0 auto;
+  margin-top:1px;
+}
+
+.gemini-panel{
+  height:398px;
+  min-height:0;
+  border-radius:18px;
+  padding:18px 14px 12px;
+  background:#fff;
+  border:0;
+  box-shadow:none;
+  display:flex;
+  flex-direction:column;
+}
+.gemini-panel-head{display:none}
+.gemini-messages{
+  flex:1;
+  min-height:0;
+  max-height:none;
+  overflow:auto;
+  padding:0 8px 7px 8px;
+  scrollbar-width:thin;
+}
+.gemini-msg{
+  max-width:86%;
+  margin:0 0 10px 0;
+  padding:13px 16px;
+  border-radius:0 17px 17px 17px;
+  background:#edf3ee;
+  border:0;
+  color:#304039;
+  font-size:13px;
+  line-height:1.55;
+}
+.gemini-msg.user{
+  margin-left:auto;
+  background:#237a55;
+  color:#fff;
+  border-radius:17px 17px 3px 17px;
+}
+.gemini-msg-name{
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.04em;
+  color:#e85a4f;
+  margin-bottom:6px;
+  text-transform:none;
+}
+.gemini-msg.user .gemini-msg-name{color:#eaf8ed}
+
+.gemini-suggestions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:4px 0 10px;
+  padding:0 0 0 0;
+}
+.gemini-suggestions button{
+  border:1px solid #a9cfb8;
+  background:#fff;
+  color:#2b7c58;
+  border-radius:999px;
+  padding:8px 12px;
+  font-size:10px;
+  font-weight:800;
+  cursor:pointer;
+}
+.gemini-suggestions button:hover{
+  background:#edf7ef;
+  border-color:#82b998;
+}
+
+.gemini-form{
+  display:flex;
+  gap:9px;
+  margin-top:0;
+  padding:0;
+}
+.gemini-form input{
+  flex:1;
+  min-width:0;
+  height:56px;
+  border:1px solid #d5e0d8;
+  background:#fff;
+  color:#25342c;
+  border-radius:12px;
+  padding:0 15px;
+  outline:none;
+  font-size:14px;
+}
+.gemini-form input::placeholder{color:#8b918e}
+.gemini-form input:focus{
+  border-color:#7eb294;
+  box-shadow:0 0 0 4px rgba(35,122,85,.08);
+}
+.gemini-form .btn{
+  height:56px;
+  padding:0 18px;
+  background:#237a55;
+  color:#fff;
+  box-shadow:none;
+  white-space:nowrap;
+  border-radius:12px;
+}
+.gemini-form .btn:hover{background:#1c6848}
+.gemini-thinking{opacity:.68}
+
+.logic-card h2{
+  font-size:28px;
+  line-height:1.15;
+  margin:0;
+}
+.logic-card > p{
+  margin:10px 0 25px;
+  color:#607169;
+  font-size:14px;
+}
+.logic-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  padding:17px 0;
+  border-bottom:1px solid #d7dfd9;
+  font-size:14px;
+  color:#65756d;
+}
+.logic-row strong{
+  font-size:14px;
+  color:#111b16;
+  white-space:nowrap;
+}
+.logic-row strong.good{color:#137c4c}
+.logic-row strong.warn{color:#df8518}
+.logic-example{
+  margin-top:19px;
+  padding:18px 19px;
+  border:1px solid #d5e2d4;
+  background:#f2f7ef;
+  border-radius:17px;
+  color:#18251f;
+  font-size:13px;
+  line-height:1.6;
+}
+.logic-example b{
+  display:block;
+  margin-bottom:4px;
+}
+.logic-card .logic-button{
+  margin-top:18px;
+  border:0;
+  border-radius:12px;
+  padding:15px 18px;
+  background:#e8f0e8;
+  color:#14754d;
+  font-weight:900;
+  cursor:pointer;
+}
+.logic-card .logic-button:hover{background:#dcebdd}
+
+@media(max-width:900px){
+  .advisor-layout{grid-template-columns:1fr}
+}
+@media(max-width:620px){
+  .advisor-main,.logic-card{padding:20px}
+  .gemini-panel{height:430px;padding-left:3px;padding-right:3px}
+  .gemini-form{flex-direction:column}
+  .gemini-form input,.gemini-form .btn{width:100%}
+  .logic-row{font-size:13px}
+}
+
+/* ===== Welcome / onboarding screen ===== */
+#welcomeScreen{
+  position:fixed; inset:0; z-index:9999;
+  display:grid; place-items:center;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(181,229,106,.24), transparent 27%),
+    radial-gradient(circle at 82% 78%, rgba(53,150,106,.18), transparent 30%),
+    linear-gradient(135deg,#081810 0%,#10291d 52%,#173c29 100%);
+  color:#f5fbf6;
+}
+#welcomeScreen.hidden{display:none}
+.welcome-glow{
+  position:absolute; width:520px; height:520px; border-radius:50%;
+  background:rgba(181,229,106,.08); filter:blur(4px);
+  top:-220px; right:-140px; pointer-events:none;
+}
+.welcome-shell{
+  width:min(1120px,92vw); min-height:min(700px,90vh);
+  display:grid; grid-template-columns:1.08fr .92fr;
+  border:1px solid rgba(220,245,225,.14);
+  border-radius:32px; overflow:hidden;
+  background:rgba(8,24,16,.48);
+  box-shadow:0 35px 100px rgba(0,0,0,.35);
+  backdrop-filter:blur(20px);
+}
+.welcome-copy{
+  padding:64px 58px; display:flex; flex-direction:column; justify-content:center;
+  position:relative;
+}
+.welcome-kicker{
+  color:#b5e56a; font-size:11px; font-weight:900;
+  letter-spacing:.18em; text-transform:uppercase;
+}
+.welcome-copy h1{
+  font-family:"Space Grotesk"; font-size:clamp(42px,5vw,72px);
+  line-height:.96; letter-spacing:-.055em; margin:14px 0 18px;
+}
+.welcome-copy h1 span{color:#b5e56a}
+.welcome-copy p{
+  color:#b8cabe; max-width:560px; font-size:15px; line-height:1.75; margin:0 0 30px;
+}
+.welcome-form{
+  display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:600px;
+}
+.welcome-field{grid-column:span 1}
+.welcome-field.full{grid-column:1/-1}
+.welcome-field label{
+  display:block; font-size:10px; text-transform:uppercase; letter-spacing:.1em;
+  color:#8fa999; font-weight:900; margin:0 0 7px;
+}
+.welcome-field input{
+  width:100%; border:1px solid rgba(210,238,218,.18); outline:none;
+  background:rgba(255,255,255,.07); color:#fff; border-radius:13px;
+  padding:13px 14px; font-weight:700;
+  transition:.2s;
+}
+.welcome-field input::placeholder{color:#7f9688}
+.welcome-field input:focus{
+  border-color:#8fc85f; box-shadow:0 0 0 4px rgba(181,229,106,.1);
+  background:rgba(255,255,255,.1);
+}
+.welcome-start{
+  grid-column:1/-1; border:0; border-radius:14px; padding:15px 18px;
+  background:linear-gradient(135deg,#b5e56a,#6fbd68); color:#0d2418;
+  font-weight:900; letter-spacing:.01em; box-shadow:0 12px 30px rgba(181,229,106,.18);
+  margin-top:4px; transition:.2s;
+}
+.welcome-start:hover{transform:translateY(-2px); box-shadow:0 16px 35px rgba(181,229,106,.26)}
+.welcome-note{font-size:10px;color:#789083;margin-top:12px}
+.welcome-visual{
+  position:relative; display:grid; place-items:center;
+  padding:35px; overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(181,229,106,.12), transparent 35%),
+    linear-gradient(160deg,rgba(35,102,70,.24),rgba(7,23,15,.12));
+}
+.clock-stage{position:relative;width:min(410px,70vw);height:410px}
+.clock{
+  position:absolute; border-radius:50%; aspect-ratio:1;
+  border:1px solid rgba(213,239,219,.2);
+  background:radial-gradient(circle,#193b2a 0 58%,#10281c 59% 100%);
+  box-shadow:inset 0 0 45px rgba(181,229,106,.05),0 20px 55px rgba(0,0,0,.2);
+}
+.clock.big{width:290px;left:60px;top:48px}
+.clock.small.one{width:120px;left:0;top:220px}
+.clock.small.two{width:105px;right:0;top:5px}
+.clock-face{
+  position:absolute;inset:13%; border-radius:50%;
+  border:1px solid rgba(181,229,106,.22);
+}
+.clock-face:before,.clock-face:after{
+  content:"";position:absolute;left:50%;top:50%;
+  width:2px;border-radius:3px;background:#d9f0dd;
+  transform-origin:50% 100%;
+  transform:translate(-50%,-100%) rotate(0deg);
+}
+.clock.big .clock-face:before{
+  height:31%;transform:translate(-50%,-100%) rotate(35deg);
+}
+.clock.big .clock-face:after{
+  height:43%;width:3px;
+  transform:translate(-50%,-100%) rotate(130deg);
+  background:#b5e56a;
+}
+.clock.small .clock-face:before{
+  height:29%;transform:translate(-50%,-100%) rotate(80deg);
+}
+.clock.small .clock-face:after{
+  height:39%;transform:translate(-50%,-100%) rotate(10deg);
+  background:#b5e56a;
+}
+.clock-dot{
+  position:absolute;left:50%;top:50%;width:9px;height:9px;border-radius:50%;
+  transform:translate(-50%,-50%);background:#b5e56a;
+  box-shadow:0 0 12px #b5e56a;z-index:4;
+}
+.clock-ticks{
+  position:absolute;inset:4%;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,rgba(220,245,225,.45) 0deg 1deg,transparent 1deg 30deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 82%,#000 82.5% 100%);
+  mask:radial-gradient(circle,transparent 0 82%,#000 82.5% 100%);
+}
+.digital-clock{
+  position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  font-family:"Space Grotesk";font-size:27px;font-weight:700;letter-spacing:.08em;
+  color:#dff4df; white-space:nowrap;
+}
+.digital-clock small{
+  font-family:"DM Sans";font-size:9px;color:#87a493;letter-spacing:.16em;
+  display:block;text-align:center;margin-top:2px;
+}
+.welcome-badge{
+  position:absolute;left:50%;top:24px;transform:translateX(-50%);
+  padding:8px 12px;border:1px solid rgba(181,229,106,.22);border-radius:999px;
+  color:#b5e56a;background:rgba(181,229,106,.06);font-size:9px;font-weight:900;
+  letter-spacing:.14em;white-space:nowrap;
+}
+.gemini-link{
+  margin-top:14px; display:inline-flex; align-items:center; gap:8px;
+  border:1px solid #c9d8cc; background:#fff; color:#1f7650;
+  padding:10px 13px; border-radius:11px; font-size:11px; font-weight:900;
+  text-decoration:none; box-shadow:0 6px 16px rgba(20,35,28,.06);
+}
+.gemini-link:hover{border-color:#7ca88c;transform:translateY(-1px)}
+@media(max-width:800px){
+  .welcome-shell{grid-template-columns:1fr;overflow:auto;max-height:92vh}
+  .welcome-copy{padding:40px 28px}
+  .welcome-visual{min-height:330px}
+  .clock-stage{transform:scale(.76);transform-origin:center}
+}
+@media(max-width:520px){
+  .welcome-form{grid-template-columns:1fr}
+  .welcome-field,.welcome-field.full{grid-column:1/-1}
+  .welcome-copy h1{font-size:42px}
+}
+
+</style>
+</head>
+<body>
+
+<!-- ===== Personalized welcome screen ===== -->
+<div id="welcomeScreen">
+  <div class="welcome-glow"></div>
+  <div class="welcome-shell">
+    <section class="welcome-copy">
+      <div class="welcome-kicker">Farm Time Machine · Your field, your story</div>
+      <h1>Let’s travel<br>through <span>time.</span></h1>
+      <p>
+        Before we open your farm dashboard, tell us who you are and where your field is.
+        We’ll personalize the experience with your name, district, and land size.
+      </p>
+
+      <form class="welcome-form" id="welcomeForm">
+        <div class="welcome-field">
+          <label for="welcomeName">Your name</label>
+          <input id="welcomeName" type="text" placeholder="e.g. Rahim Mia" required>
+        </div>
+        <div class="welcome-field">
+          <label for="welcomeDistrict">District</label>
+          <input id="welcomeDistrict" type="text" placeholder="e.g. Kurigram" required>
+        </div>
+        <div class="welcome-field full">
+          <label for="welcomeAcres">Farm size · acres</label>
+          <input id="welcomeAcres" type="number" min="0.01" step="0.01" placeholder="e.g. 1" required>
+        </div>
+        <button class="welcome-start" type="submit">Enter My Farm Dashboard →</button>
+      </form>
+      <div class="welcome-note">Your details personalize this demo on this device.</div>
+    </section>
+
+    <section class="welcome-visual" aria-hidden="true">
+      <div class="welcome-badge">PAST · PRESENT · FUTURE</div>
+      <div class="clock-stage">
+        <div class="clock big">
+          <div class="clock-ticks"></div><div class="clock-face"></div><div class="clock-dot"></div>
+        </div>
+        <div class="clock small one">
+          <div class="clock-ticks"></div><div class="clock-face"></div><div class="clock-dot"></div>
+        </div>
+        <div class="clock small two">
+          <div class="clock-ticks"></div><div class="clock-face"></div><div class="clock-dot"></div>
+        </div>
+        <div class="digital-clock" id="welcomeClock">00:00:00<small>TIME IS MOVING · YOUR FARM IS TOO</small></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="logo">FT</div><div><b>Farm Time Machine</b><span>NASA-powered farm intelligence</span></div></div>
+  <nav class="nav" id="nav">
+    <button class="active" data-view="today"><span class="ico">⌂</span><span>My Field Today</span></button>
+    <button data-view="time"><span class="ico">◷</span><span>Farm Time Machine</span></button>
+    <button data-view="whatif"><span class="ico">↔</span><span>What‑If Simulator</span></button>
+    <button data-view="replay"><span class="ico">↺</span><span>Decision Replay</span></button>
+    <button data-view="advisor"><span class="ico">✦</span><span>AI Farm Advisor</span></button>
+    <button data-view="outlook"><span class="ico">↗</span><span>Future Outlook</span></button>
+    <button data-view="learn"><span class="ico">▶</span><span>Learn & Play</span></button>
+  </nav>
+  <div class="side-bottom"><strong>One engine. Many views.</strong>Historical + current NASA data and crop tolerance profiles power the entire experience.</div>
+</aside>
+
+<main class="main">
+<header class="topbar"><div class="crumb">Workspace / <b id="crumb">My Field Today</b></div><div class="profile"><span>Rahim Mia · Kurigram</span><div class="avatar">RM</div></div></header>
+
+<div class="content">
+<section class="hero">
+  <div><div class="eyebrow">Farm intelligence · demo</div><h1>See your field’s past.<br>Understand its future.</h1><p>Replay real conditions, test “what‑if” decisions, and turn NASA data into actions a farmer can understand.</p></div>
+  <select class="field-select"><option>Rahim Mia · Field 01 · 1 acre</option><option>Demo Field · Kurigram</option></select>
+</section>
+
+<!-- TODAY -->
+<section class="view active" id="today">
+  <div class="grid4">
+    <div class="card kpi"><span class="label">RAIN RISK</span><div class="value warn">Moderate</div><span class="pill warn">Below-normal rain</span></div>
+    <div class="card kpi"><span class="label">HEAT RISK</span><div class="value bad">High</div><span class="pill risk">3 hot weeks ahead</span></div>
+    <div class="card kpi"><span class="label">SOIL MOISTURE</span><div class="value">0.27</div><span class="pill warn">Drying · 12 days</span></div>
+    <div class="card kpi"><span class="label">CROP STRESS</span><div class="value good">Low</div><span class="pill">Field is fallow</span></div>
+  </div>
+  <div class="grid2 section">
+    <div class="card">
+      <div class="card-head"><div><h2>My Field Today</h2><p>Satellite conditions translated into everyday language.</p></div><span class="badge">Live demo</span></div>
+      <div class="map"><div class="map-pin"></div><div class="map-label">Field 01 · 1 acre</div><div class="legend">▰ Higher vegetation · ◼ Field boundary · ● Your field</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><h2>What matters now</h2><p>The signals behind today’s picture.</p></div></div>
+      <div class="statline"><span>Drought / flood</span><b class="warn">Drought watch</b></div>
+      <div class="statline"><span>Flood risk</span><b class="good">Low</b></div>
+      <div class="statline"><span>Vegetation health</span><b class="good">Healthy</b></div>
+      <div class="statline"><span>Recent heat pattern</span><b class="bad">Elevated</b></div>
+      <div class="callout" style="margin-top:15px"><strong>Why this matters</strong>Moisture is trending down while heat risk is elevated. The next decision should focus on crops that can handle a drier season.</div>
+    </div>
+  </div>
+  <div class="grid2 section">
+    <div class="card">
+      <div class="card-head"><div><h2>Next-season outlook</h2><p>Past → today → next season.</p></div><button class="btn" onclick="go('advisor')">Ask Advisor</button></div>
+      <div class="statline"><span>Expected Jul–Sep rainfall</span><b>780 mm</b></div>
+      <div class="statline"><span>10-year field average</span><b>970 mm</b></div>
+      <div class="statline"><span>Heat pattern</span><b class="bad">Above recent average</b></div>
+    </div>
+    <div class="game-card"><div class="game-icon">🌱</div><h2 style="margin-top:7px">Learn by making the decision</h2><p>Try a simplified farm scenario: heavy rain is coming. Drainage, irrigation, mulch, crop shift—or do nothing?</p><button class="btn" onclick="go('learn')">Open Learning Hub →</button></div>
+  </div>
+</section>
+
+<!-- TIME -->
+<section class="view" id="time">
+  <div class="card">
+    <div class="card-head"><div><div class="eyebrow">Replay the field</div><h2 style="font-size:25px;margin-top:4px">Farm Time Machine</h2><p>Jump through 10 years of rainfall, temperature, soil moisture and crop-health signals.</p></div><span class="badge">2016–2025</span></div>
+    <div class="chart-wrap"><div class="chart" id="rainChart"></div></div>
+    <div class="timeline" id="years"></div>
+  </div>
+  <div class="grid3 section">
+    <div class="card"><div class="card-head"><div><h3 id="timeYear">2019 rainfall</h3><p>NASA GPM · field estimate</p></div></div><div style="font-size:30px;font-family:'Space Grotesk';font-weight:700" id="rainVal">640 mm</div><div class="statline"><span>Peak temperature</span><b id="tempVal">36.2°C</b></div></div>
+    <div class="card"><h3>Soil & vegetation</h3><div class="statline"><span>Soil moisture index</span><b id="soilVal">0.28</b></div><div class="statline"><span>Vegetation health</span><b class="good">Moderate</b></div><div class="statline"><span>Rain pattern</span><b class="bad" id="rainPattern">Dry season</b></div></div>
+    <div class="card"><h3>What it meant</h3><p class="muted" id="timeInsight" style="font-size:13px;line-height:1.7">2019 was one of the drier seasons in this demo. Rice would have faced higher water stress, making it a useful year to replay with the What‑If Simulator.</p><button class="btn secondary" onclick="go('whatif')">Replay this year →</button></div>
+  </div>
+  <p class="footer-note">Demo values are illustrative. A production system would connect the selected field to NASA GPM, SMAP, MODIS/VIIRS and other validated data products.</p>
+</section>
+
+<!-- WHAT IF -->
+<section class="view" id="whatif">
+  <div class="card">
+    <div class="card-head"><div><div class="eyebrow">Core innovation</div><h2 style="font-size:25px;margin-top:4px">What‑If Crop Simulator</h2><p>Replay the same historical weather, but change the farmer’s decision.</p></div><span class="badge">Simulation · not a guarantee</span></div>
+    <div class="controls">
+      <div class="control"><label>Historical year</label><select id="wy"></select></div>
+      <div class="control"><label>What actually happened</label><select id="actual"></select></div>
+      <div class="control"><label>What if?</label><select id="alt"></select></div>
+      <button class="btn" onclick="runSim()">Run simulation →</button>
+    </div>
+    <div id="simSummary" class="callout" style="margin-top:18px;margin-bottom:14px;background:#f8fbf7"><strong>Simulation result</strong><span>Select a year and two crop choices to compare the same weather conditions.</span></div>
+    <div class="compare" id="comparison"></div>
+    <div class="callout" style="margin-top:15px"><strong>How the simulation works</strong>The engine holds the historical weather conditions constant, then runs each crop against a simplified crop-tolerance profile. Results are estimates for comparison—not guaranteed yield predictions.</div>
+  </div>
+</section>
+
+<!-- REPLAY -->
+<section class="view" id="replay">
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head"><div><div class="eyebrow">The farmer’s story</div><h2>Decision Replay</h2><p>Remember what was planted, what happened, and what another decision might have changed.</p></div></div>
+      <div class="replay">
+        <div class="event"><div class="date">2022 · Rice</div><p><b>High rainfall → low water stress</b></p><small>1,120 mm rainfall · decision performed well under those conditions.</small></div>
+        <div class="event"><div class="date">2023 · Rice</div><p><b>Low rainfall → high water stress</b></p><small>690 mm rainfall · a crop switch could have reduced water pressure.</small></div>
+        <div class="event"><div class="date">2024 · Jute</div><p><b>Near-normal rainfall → moderate stress</b></p><small>940 mm rainfall · conditions were closer to the crop’s preferred range.</small></div>
+        <div class="event"><div class="date">Today</div><p><b>Fallow field · decision pending</b></p><small>The Advisor can use this history when discussing the next season.</small></div>
+      </div>
+    </div>
+    <div class="card">
+      <span class="badge">Replay a decision</span><h2 style="margin-top:12px">What if 2023 was different?</h2><p class="muted">Keep 2023’s actual rainfall. Change only the crop choice.</p>
+      <div class="statline"><span>Actual decision</span><b>Rice</b></div>
+      <div class="statline"><span>Observed rainfall</span><b>690 mm</b></div>
+      <div class="statline"><span>Observed water stress</span><b class="bad">31%</b></div>
+      <div class="callout" style="margin-top:15px"><strong>Try another path</strong>“What if you had planted sesame?” This question sends the same 2023 conditions into the What‑If Simulator.</div>
+      <button class="btn" style="margin-top:13px" onclick="document.getElementById('wy').value=7;document.getElementById('actual').value='rice';document.getElementById('alt').value='sesame';go('whatif');runSim()">Replay 2023 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ADVISOR -->
+<section class="view" id="advisor">
+  <div class="advisor-layout">
+
+    <div class="advisor-main">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Explainable AI</div>
+          <h2 style="font-size:28px;margin-top:4px">AI Farm Advisor</h2>
+          <p>Ask about a crop. The answer explains the reason behind the suggestion.</p>
+        </div>
+        <span class="badge">GEMINI AI</span>
+      </div>
+
+      <div class="gemini-panel">
+        <div class="gemini-messages" id="geminiMessages">
+          <div class="gemini-msg ai">
+            <div class="gemini-msg-name">Gemini</div>
+            <div>Hi <span id="geminiGreetingName">Farmer</span> 👋<br>
+            I’m your AI Farm Advisor. Ask me about a crop, rainfall, heat, soil moisture, or a farming decision, and I’ll explain the reasoning behind the answer.</div>
+          </div>
+        </div>
+
+        <div class="gemini-suggestions">
+          <button type="button" data-prompt="Which crop would be safer for my farm if rainfall is below normal?">Rice</button>
+          <button type="button" data-prompt="Would maize be a good choice for my selected conditions?">Maize</button>
+          <button type="button" data-prompt="Would jute be suitable for my current conditions?">Jute</button>
+          <button type="button" data-prompt="Is sesame a safer option for a drier season?">Sesame</button>
+          <button type="button" data-prompt="Would mung bean reduce water stress?">Mung bean</button>
+          <button type="button" data-prompt="Is sugarcane suitable for my current water conditions?">Sugarcane</button>
+        </div>
+
+        <form class="gemini-form" id="geminiForm">
+          <input id="geminiInput" type="text" placeholder='Try “maize” or “should I plant rice?”' autocomplete="off">
+          <button class="btn" id="geminiSend" type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="logic-card">
+      <h2>Recommendation logic</h2>
+      <p>Not a black box.</p>
+
+      <div class="logic-row">
+        <span>Historical water availability</span>
+        <strong id="logicWater" class="good">Strong signal</strong>
+      </div>
+      <div class="logic-row">
+        <span>Recent heat pattern</span>
+        <strong id="logicHeat" class="warn">Watch</strong>
+      </div>
+      <div class="logic-row">
+        <span>Seasonal outlook</span>
+        <strong id="logicSeason" class="warn">Drier</strong>
+      </div>
+      <div class="logic-row">
+        <span>Crop tolerance profile</span>
+        <strong id="logicCrop">Compared</strong>
+      </div>
+
+      <div class="logic-example">
+        <b>Example explanation</b>
+        <span id="logicExplanation">“Main reason: historical water availability + recent heat-stress pattern.”</span><br>
+        Every recommendation is paired with its key drivers.
+      </div>
+
+      <button class="logic-button" type="button"
+        onclick="go('whatif');runSim()">Verify with simulation →</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- OUTLOOK -->
+<section class="view" id="outlook">
+  <div class="card">
+    <div class="card-head"><div><div class="eyebrow">Past → today → next</div><h2 style="font-size:25px">Future Outlook</h2><p>Turn historical patterns and current conditions into preparation signals.</p></div><span class="badge">Scenario view</span></div>
+    <div class="grid3">
+      <div class="callout"><strong>Next 2–4 weeks</strong><span class="bad">Heat risk elevated.</span> Watch soil moisture and avoid unnecessary water loss.</div>
+      <div class="callout"><strong>Seasonal rainfall</strong><span class="warn">780 mm expected</span> versus a 970 mm 10-year field average.</div>
+      <div class="callout"><strong>Preparation</strong>Consider crops and rotations with lower seasonal water demand.</div>
+    </div>
+    <div class="section card" style="background:#f8faf7">
+      <h3>Risk horizon</h3>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px">
+        <div><small class="muted">RAIN</small><div class="pill warn">Moderate</div></div>
+        <div><small class="muted">HEAT</small><div class="pill risk">High</div></div>
+        <div><small class="muted">DROUGHT</small><div class="pill warn">Watch</div></div>
+        <div><small class="muted">FLOOD</small><div class="pill">Low</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LEARN -->
+<section class="view" id="learn">
+  <div class="hero" style="margin-bottom:18px"><div><div class="eyebrow">Learn by doing</div><h2 style="font-size:28px">The farm becomes a story.</h2><p>Two lightweight experiences use the same decision logic as the main product. These are mock launch points for the demo.</p></div></div>
+  <div class="grid2">
+    <div class="game-card"><div class="game-icon">🎮</div><span class="badge" style="background:#284936;color:#bfe68b">2D GAME · MOCK</span><h2 style="font-size:25px;margin-top:12px">Save the Harvest</h2><p>Face events like heavy rain, drought and heat. Choose drainage, irrigation, mulching, crop shift—or do nothing—and see the consequence.</p><button class="btn" onclick="mockLaunch('Save the Harvest · 2D game')">Launch mock →</button></div>
+    <div class="card"><div style="font-size:30px">📖</div><span class="badge" style="margin-top:10px">VISUAL NOVEL · MOCK</span><h2 style="font-size:25px;margin-top:10px">The Farmer’s Decision</h2><p class="muted" style="line-height:1.7">A short branching story where the player meets real-world farm decisions and learns why the system recommends one action over another.</p><button class="btn secondary" onclick="mockLaunch('Farmer’s Decision · visual-novel quiz')">Open mock →</button></div>
+  </div>
+  <div class="card section"><div class="card-head"><div><h2>Why the learning layer matters</h2><p>The game is not a separate product—it is a simplified window into the same recommendation engine.</p></div></div><div class="grid3"><div class="statline"><span>Same crop profiles</span><b>✓</b></div><div class="statline"><span>Same risk logic</span><b>✓</b></div><div class="statline"><span>Same decision concepts</span><b>✓</b></div></div></div>
+</section>
+
+<div style="height:1px;background:linear-gradient(90deg,transparent,#d5e1d7,transparent);margin-top:34px"></div><p class="footer-note">Prototype interface · illustrative data · simulations are estimates, not guaranteed yield predictions.</p>
+</div>
+</main>
+</div>
+
+<script>
+const YEARS=[2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+const RAIN=[1020,1180,960,640,1290,1010,1120,690,940,870];
+const TEMP=[34.1,33.5,34.4,36.2,33.1,34.0,33.7,36.0,34.8,35.1];
+const CROPS={rice:{n:"Rice",need:1000},maize:{n:"Maize",need:500},jute:{n:"Jute",need:700},sesame:{n:"Sesame",need:400},mung:{n:"Mung bean",need:350},sugarcane:{n:"Sugarcane",need:1500}};
+const cropKeys=Object.keys(CROPS);
+const $=s=>document.querySelector(s);
+function go(view){
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===view));
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
+  const names={today:"My Field Today",time:"Farm Time Machine",whatif:"What‑If Simulator",replay:"Decision Replay",advisor:"AI Farm Advisor",outlook:"Future Outlook",learn:"Learn & Play"};
+  $("#crumb").textContent=names[view];
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+$("#nav").onclick=e=>{const b=e.target.closest("button[data-view]");if(b)go(b.dataset.view)};
+
+function fillSelect(id,withYear=false){
+  const el=$(id);
+  el.innerHTML=withYear?YEARS.map((y,i)=>`<option value="${i}" ${i===3?"selected":""}>${y}</option>`).join("")
+  :cropKeys.map((k,i)=>`<option value="${k}" ${i===0?"selected":""}>${CROPS[k].n}</option>`).join("");
+}
+fillSelect("#wy",true);fillSelect("#actual");fillSelect("#alt");$("#actual").value="rice";$("#alt").value="sesame";
+
+function renderTime(){
+  $("#rainChart").innerHTML=YEARS.map((y,i)=>`<div class="barcol"><i style="height:${Math.max(8,RAIN[i]/1400*100)}%"></i><span>${String(y).slice(2)}</span></div>`).join("");
+  $("#years").innerHTML=YEARS.map((y,i)=>`<button class="year ${i===3?"active":""}" data-i="${i}"><b>${y}</b><small>${RAIN[i]} mm</small></button>`).join("");
+  $("#years").onclick=e=>{const b=e.target.closest(".year");if(!b)return;selectYear(+b.dataset.i)};
+  selectYear(3);
+}
+function selectYear(i){
+  document.querySelectorAll(".year").forEach((b,j)=>b.classList.toggle("active",j===i));
+  const r=RAIN[i],t=TEMP[i];
+  $("#timeYear").textContent=YEARS[i]+" rainfall";$("#rainVal").textContent=r+" mm";$("#tempVal").textContent=t+"°C";
+  $("#soilVal").textContent=(.12+r/4000).toFixed(2);
+  $("#rainPattern").textContent=r<750?"Dry season":r>1100?"Wet season":"Near normal";
+  $("#timeInsight").textContent=r<750?`${YEARS[i]} was one of the drier seasons in this demo. It is a useful year to test whether a lower-water crop could have reduced stress.`:r>1100?`${YEARS[i]} was a wetter season. Replay it to see which crops benefited from abundant rainfall.`:`${YEARS[i]} sits closer to the field's middle range. Compare different crop choices under the same conditions.`;
+}
+renderTime();
+
+// Weather-aware demo model:
+// the selected historical year supplies rainfall AND temperature,
+// while each crop contributes a different water need and heat tolerance.
+// This keeps the historical conditions identical between both sides,
+// but makes crop choices and years produce visibly different outcomes.
+const CROP_PROFILE={
+  rice:{heat:35.0,wet:1.12},
+  maize:{heat:35.5,wet:0.92},
+  jute:{heat:36.0,wet:1.02},
+  sesame:{heat:37.0,wet:0.82},
+  mung:{heat:36.5,wet:0.78},
+  sugarcane:{heat:35.0,wet:1.25}
+};
+
+function weatherScore(c,r,t){
+  const p=CROP_PROFILE[c] || {heat:35,wet:1};
+  const need=CROPS[c].need * p.wet;
+
+  // Rainfall deficit is the main water-stress driver.
+  const rainStress=Math.max(0,(need-r)/need)*72;
+
+  // Excess rainfall also creates a smaller waterlogging penalty for crops
+  // that need substantially less water than the historical year supplied.
+  const excess=Math.max(0,(r-need)/Math.max(need,1));
+  const wetPenalty=Math.min(14,excess*18);
+
+  // Heat stress rises once the year's peak temperature exceeds the crop profile.
+  const heatStress=Math.max(0,t-p.heat)*5.5;
+
+  const stress=Math.min(95,Math.max(2,Math.round(rainStress+wetPenalty+heatStress)));
+  const suitability=Math.max(5,Math.min(98,Math.round(100-stress)));
+  const days=Math.round(4+stress*0.95);
+
+  return {stress,suitability,days,need:Math.round(need)};
+}
+
+function cropBox(c,r,t,alt,title){
+  const w=weatherScore(c,r,t);
+  const s=w.stress, suit=w.suitability, cls=s<18?"good":s<38?"warn":"bad";
+  const outcome=s<18?"Low stress likely":s<38?"Moderate stress":"High stress";
+  return `<div class="compare-box ${alt?"alt":""}">
+    <div class="compare-title"><span>${title}</span><b>${CROPS[c].n}</b></div>
+    <div class="metric"><div class="metric-top"><span>Water / heat stress</span><b class="${cls}">${s}%</b></div><div class="track"><i style="width:${s}%;background:${s>38?"#c84e43":s>18?"#d18a28":"#559b74"}"></i></div></div>
+    <div class="metric"><div class="metric-top"><span>Crop suitability</span><b>${suit}%</b></div><div class="track"><i style="width:${suit}%"></i></div></div>
+    <div class="statline"><span>Stress periods</span><b>${w.days} days</b></div>
+    <div class="statline"><span>Crop water target</span><b>~${w.need} mm</b></div>
+    <div class="statline"><span>Estimated outcome</span><b class="${cls}">${outcome}</b></div>
+  </div>`;
+}
+
+function runSim(){
+  const i=+$("#wy").value,a=$("#actual").value,b=$("#alt").value;
+  const r=RAIN[i],t=TEMP[i];
+  $("#simSummary").innerHTML =
+    `<strong>${YEARS[i]} weather replay</strong><span>${r} mm rainfall · peak ${t}°C · comparing ${CROPS[a].n} with ${CROPS[b].n}</span>`;
+  $("#comparison").innerHTML=
+    cropBox(a,r,t,false,"What happened")+
+    cropBox(b,r,t,true,"What if");
+}
+runSim();
+
+
+
+
+function updateRecommendationLogic(){
+  const yearIndex = Number(document.getElementById("wy")?.value ?? 3);
+  const actual = document.getElementById("actual")?.value || "rice";
+  const alt = document.getElementById("alt")?.value || "sesame";
+  const r = RAIN[yearIndex];
+  const t = TEMP[yearIndex];
+  const a = weatherScore(actual,r,t);
+  const b = weatherScore(alt,r,t);
+
+  const water = document.getElementById("logicWater");
+  const heat = document.getElementById("logicHeat");
+  const season = document.getElementById("logicSeason");
+  const crop = document.getElementById("logicCrop");
+  const explanation = document.getElementById("logicExplanation");
+
+  if(!water || !heat || !season || !crop || !explanation) return;
+
+  const waterText = r >= 1000 ? "Strong signal" : r >= 800 ? "Moderate" : "Limited";
+  water.textContent = waterText;
+  water.className = r >= 1000 ? "good" : "warn";
+
+  const heatText = t >= 35.5 ? "Watch" : "Lower risk";
+  heat.textContent = heatText;
+  heat.className = t >= 35.5 ? "warn" : "good";
+
+  const seasonText = r < 800 ? "Drier" : r > 1050 ? "Wetter" : "Near normal";
+  season.textContent = seasonText;
+  season.className = r < 800 ? "warn" : r > 1050 ? "good" : "";
+
+  crop.textContent = `${CROPS[actual].n} vs ${CROPS[alt].n}`;
+
+  const better = b.suitability >= a.suitability ? CROPS[alt].n : CROPS[actual].n;
+  const drivers = [];
+  drivers.push(r < 800 ? "limited historical water availability" : r > 1050 ? "high historical water availability" : "moderate historical water availability");
+  if(t >= 35.5) drivers.push("recent heat-stress pattern");
+  drivers.push(`${better}'s crop-tolerance profile`);
+
+  explanation.textContent = `“Main reason: ${drivers.join(" + ")}.”`;
+}
+
+const originalRunSim = runSim;
+runSim = function(){
+  originalRunSim();
+  updateRecommendationLogic();
+};
+
+/* ===== Gemini API chat =====
+   Paste your Gemini API key into GEMINI_API_KEY below.
+   Nothing related to the key is shown in the AI Advisor UI.
+*/
+const GEMINI_API_KEY = "AQ.Ab8RN6I5uE3L13bKiuj23o5CnrRLpQSlbwn847rhelvRmhqaug";
+const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.1-flash-lite"];
+
+function geminiEndpoint(model){
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+}
+let geminiHistory = [];
+
+function getFarmProfile(){
+  let p = {};
+  try { p = JSON.parse(localStorage.getItem("ftm_profile") || "{}"); } catch(e){}
+  const liveName = document.getElementById("geminiGreetingName")?.textContent?.trim();
+  const liveProfileName = document.querySelector(".profile span")?.textContent?.split("·")[0]?.trim();
+  const currentName = liveName && liveName !== "Farmer"
+    ? liveName
+    : (liveProfileName || p.name || "the farmer");
+
+  const yearIndex = Number(document.getElementById("wy")?.value ?? 3);
+  const actual = document.getElementById("actual")?.value || "rice";
+  const alt = document.getElementById("alt")?.value || "sesame";
+  return {
+    name:currentName,
+    district:p.district || "the selected district",
+    acres:p.acres || "1",
+    year:YEARS[yearIndex] || 2019,
+    rainfall:RAIN[yearIndex] || 640,
+    temperature:TEMP[yearIndex] || 36.2,
+    actualCrop:CROPS[actual]?.n || actual,
+    whatIfCrop:CROPS[alt]?.n || alt
+  };
+}
+
+function geminiSystemContext(){
+  const f=getFarmProfile();
+  return `You are the AI Farm Advisor inside the Farm Time Machine educational dashboard.
+Be practical, concise, friendly, and easy for a farmer to understand.
+The dashboard values are illustrative demo values, not live satellite measurements.
+Farmer: ${f.name}
+District: ${f.district}
+Farm size: ${f.acres} acre(s)
+Selected historical year: ${f.year}
+Illustrative rainfall: ${f.rainfall} mm
+Illustrative peak temperature: ${f.temperature}°C
+Actual crop selection: ${f.actualCrop}
+What-if crop selection: ${f.whatIfCrop}
+Use metric units. For important real-world farming decisions, acknowledge uncertainty and suggest local agricultural guidance.`;
+}
+
+function escapeHtml(value){
+  return String(value).replace(/[&<>"']/g,ch=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[ch]));
+}
+
+function formatAiText(value){
+  // escape first (safe), then turn markdown-style **bold**, *italic* and line breaks into HTML
+  return escapeHtml(value)
+    .replace(/\*\*([^*\n]+?)\*\*/g,"<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*\s][^*\n]*?)\*(?!\*)/g,"$1<em>$2</em>")
+    .replace(/\n/g,"<br>");
+}
+
+function addGeminiMessage(type,text,id){
+  const box=document.getElementById("geminiMessages");
+  if(!box) return;
+  const div=document.createElement("div");
+  div.className="gemini-msg "+(type==="user"?"user":"ai");
+  if(id) div.id=id;
+  div.innerHTML=`<div class="gemini-msg-name">${type==="user"?"You":"Gemini"}</div><div>${text}</div>`;
+  box.appendChild(div);
+  box.scrollTop=box.scrollHeight;
+}
+
+function removeGeminiMessage(id){
+  const el=document.getElementById(id);
+  if(el) el.remove();
+}
+
+async function askGemini(prompt){
+  try{
+    const saved = JSON.parse(localStorage.getItem("ftm_profile") || "{}");
+    const greeting = document.getElementById("geminiGreetingName");
+    if(greeting && saved.name) greeting.textContent = saved.name;
+  }catch(e){}
+
+  if(!GEMINI_API_KEY || GEMINI_API_KEY.includes("PASTE_YOUR")){
+    addGeminiMessage("ai","Gemini API key is not configured yet. Paste your key into GEMINI_API_KEY in the code.");
+    return;
+  }
+
+  const send=document.getElementById("geminiSend");
+  const input=document.getElementById("geminiInput");
+  if(send) send.disabled=true;
+  if(input) input.disabled=true;
+
+  const thinkingId="gemini-thinking-"+Date.now();
+  addGeminiMessage("ai","Thinking…",thinkingId);
+
+  let lastError=null;
+
+  for(const model of GEMINI_MODELS){
+    for(let attempt=0; attempt<2; attempt++){
+      console.log("Gemini Advisor: trying", model, "attempt", attempt + 1);
+      try{
+        const body={
+          systemInstruction:{parts:[{text:geminiSystemContext()}]},
+          contents:[...geminiHistory,{role:"user",parts:[{text:prompt}]}],
+          generationConfig:{temperature:0.65,maxOutputTokens:700}
+        };
+
+        const res=await fetch(geminiEndpoint(model),{
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "x-goog-api-key":GEMINI_API_KEY
+          },
+          body:JSON.stringify(body)
+        });
+
+        if(res.ok){
+          const data=await res.json();
+          const text=data?.candidates?.[0]?.content?.parts
+            ?.map(p=>p.text||"").join("").trim();
+
+          if(!text) throw new Error("Gemini returned an empty response.");
+
+          removeGeminiMessage(thinkingId);
+          addGeminiMessage("user",escapeHtml(prompt));
+          addGeminiMessage("ai",formatAiText(text));
+
+          geminiHistory.push(
+            {role:"user",parts:[{text:prompt}]},
+            {role:"model",parts:[{text}]}
+          );
+
+          if(send) send.disabled=false;
+          if(input){input.disabled=false; input.value="";}
+          return;
+        }
+
+        let errorData={};
+        try{errorData=await res.json();}catch(e){}
+        lastError=new Error(errorData?.error?.message || `Gemini request failed (${res.status})`);
+
+        // Temporary overload/rate-limit: retry once, then move to fallback model.
+        if((res.status===429 || res.status===503) && attempt===0){
+          await new Promise(r=>setTimeout(r,1500));
+          continue;
+        }
+
+        // Authentication/permission/bad request: fallback won't fix the key.
+        if(res.status===400 || res.status===401 || res.status===403){
+          break;
+        }
+        continue;
+
+      }catch(err){
+        lastError=err;
+        if(attempt===0){
+          await new Promise(r=>setTimeout(r,1000));
+          continue;
+        }
+      }
+    }
+  }
+
+  removeGeminiMessage(thinkingId);
+  addGeminiMessage(
+    "ai",
+    `I couldn't reach Gemini right now. I tried the main model and a fallback model. Please try again in a moment.<br><small>${escapeHtml(lastError?.message || "Temporary Gemini service issue.")}</small>`
+  );
+
+  if(send) send.disabled=false;
+  if(input) input.disabled=false;
+}
+
+function initGeminiAdvisor(){
+  try{
+    const p=JSON.parse(localStorage.getItem("ftm_profile") || "{}");
+    const n=document.getElementById("geminiGreetingName");
+    if(n){
+      const enteredName = (p.name || "").trim();
+      n.textContent = enteredName || "Farmer";
+    }
+  }catch(e){
+    const n=document.getElementById("geminiGreetingName");
+    if(n) n.textContent = "Farmer";
+  }
+  updateRecommendationLogic();
+
+  const form=document.getElementById("geminiForm");
+  const input=document.getElementById("geminiInput");
+
+  form?.addEventListener("submit",async e=>{
+    e.preventDefault();
+    const q=input.value.trim();
+    if(!q)return;
+    input.value="";
+    await askGemini(q);
+  });
+
+  document.querySelectorAll(".gemini-suggestions button").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      input.value=btn.dataset.prompt||"";
+      input.focus();
+    });
+  });
+}
+
+initGeminiAdvisor();
+
+function mockLaunch(name){
+  alert(name+" is a presentation mock.\n\nIn the full product, this button would open the interactive learning experience. For this demo, the launch point is intentionally kept lightweight.");
+}
+
+/* ===== Personalized welcome logic ===== */
+(function(){
+  const welcome = document.getElementById("welcomeScreen");
+  const form = document.getElementById("welcomeForm");
+  const clock = document.getElementById("welcomeClock");
+
+  function formatAcres(v){
+    const n = Number(v);
+    if (!Number.isFinite(n)) return v;
+    return Number.isInteger(n) ? String(n) : String(parseFloat(n.toFixed(2)));
+  }
+
+  function setText(selector, value){
+    document.querySelectorAll(selector).forEach(el => el.textContent = value);
+  }
+
+  function personalize(name, district, acres){
+    const acreText = formatAcres(acres) + " acre" + (Number(acres) === 1 ? "" : "s");
+
+    // Profile / top bar
+    const profile = document.querySelector(".profile");
+    if(profile){
+      profile.innerHTML = `<span>${name} · ${district}</span><div class="avatar">${name.split(/\s+/).map(x=>x[0]).slice(0,2).join("").toUpperCase()}</div>`;
+    }
+
+    // Main field selector
+    const fieldSelect = document.querySelector(".field-select");
+    if(fieldSelect){
+      fieldSelect.options[0].textContent = `${name} · Field 01 · ${acreText}`;
+      if(fieldSelect.options[1]) fieldSelect.options[1].textContent = `Demo Field · ${district}`;
+    }
+
+    // Field labels in the dashboard
+    document.querySelectorAll(".map-label").forEach(el => el.textContent = `Field 01 · ${acreText}`);
+
+    // Replace visible occurrences in dashboard copy where appropriate.
+    document.querySelectorAll(".profile span, .map-label").forEach(el => {
+      el.textContent = el.textContent.replaceAll("Rahim Mia", name)
+                                   .replaceAll("Kurigram", district)
+                                   .replaceAll("1 acre", acreText);
+    });
+
+    localStorage.setItem("ftm_profile", JSON.stringify({name, district, acres}));
+
+    // Keep the Gemini greeting synchronized with the name just entered.
+    const geminiGreetingName = document.getElementById("geminiGreetingName");
+    if(geminiGreetingName) geminiGreetingName.textContent = name || "Farmer";
+  }
+
+  function updateClock(){
+    const d = new Date();
+    const h = String(d.getHours()).padStart(2,"0");
+    const m = String(d.getMinutes()).padStart(2,"0");
+    const s = String(d.getSeconds()).padStart(2,"0");
+    if(clock) clock.firstChild.textContent = `${h}:${m}:${s}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    const name = document.getElementById("welcomeName").value.trim();
+    const district = document.getElementById("welcomeDistrict").value.trim();
+    const acres = document.getElementById("welcomeAcres").value.trim();
+    if(!name || !district || !acres) return;
+
+    personalize(name, district, acres);
+    welcome.classList.add("hidden");
+    document.body.style.overflow = "";
+  });
+
+  // Prefill the last-used profile, but always show the welcome page on first load.
+  const saved = localStorage.getItem("ftm_profile");
+  if(saved){
+    try{
+      const p = JSON.parse(saved);
+      if(p.name) document.getElementById("welcomeName").value = p.name;
+      if(p.district) document.getElementById("welcomeDistrict").value = p.district;
+      if(p.acres) document.getElementById("welcomeAcres").value = p.acres;
+    }catch(e){}
+  }
+  document.body.style.overflow = "hidden";
+})();
+
+</script>
+</body>
+</html>
